@@ -12,8 +12,8 @@ public class CustomPizza extends Pizza {
 
     @Override
     public double calculateCost() {
-        double cost = 10.0; // Base cost
-        cost += toppings.size() * 1.5;
+        double cost = 1000.00; // Base cost of a pizza
+        cost += toppings.size() * 150.00;
         return cost;
     }
 }
