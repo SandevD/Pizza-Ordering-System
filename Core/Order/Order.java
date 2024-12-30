@@ -20,7 +20,7 @@ public class Order {
     private String discountCode;
     private Feedback feedback;
     private boolean isDelivery;
-    private static final double DELIVERY_FEE = 2.0;
+    private static final double DELIVERY_FEE = 300.00;
 
     public Order(String orderId, User user) {
         this.orderId = orderId;
@@ -39,7 +39,7 @@ public class Order {
     }
 
     public double getDeliveryFee() {
-        return isDelivery ? DELIVERY_FEE : 0.0;
+        return isDelivery ? DELIVERY_FEE : 0.00;
     }
 
     public String getOrderId() {
