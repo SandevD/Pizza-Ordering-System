@@ -23,7 +23,7 @@ public class User {
     }
 
     public void addLoyaltyPoints(double amount) {
-        this.loyaltyPoints += (int) (amount / 5) * 3;
+        this.loyaltyPoints += (int) (amount / 10) * 3;
     }
 
     public void deductLoyaltyPoints(int points) {
