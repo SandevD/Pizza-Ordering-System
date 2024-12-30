@@ -1,6 +1,7 @@
 package Strategy.Payment;
 
 import Core.User.User;
+import Utils.ColorCodes;
 
 public class LoyaltyPointsPayment implements PaymentStrategy {
     private User user;
@@ -14,9 +15,10 @@ public class LoyaltyPointsPayment implements PaymentStrategy {
         int requiredPoints = (int) (amount);
         if (user.getLoyaltyPoints() >= requiredPoints) {
             user.deductLoyaltyPoints(requiredPoints);
-            System.out.println("Paid with " + requiredPoints + " loyalty points");
+            ColorCodes.printSuccessMessage("\nPaid with Loyalty Points!", true);
+            ColorCodes.printSuccessMessage("Redeemed " + requiredPoints + " Loyalty Points!", true);
         } else {
-            throw new IllegalStateException("Insufficient loyalty points");
+            throw new IllegalStateException("\nInsufficient loyalty points");
         }
     }
 }
