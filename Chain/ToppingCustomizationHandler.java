@@ -1,6 +1,7 @@
 package Chain;
 
 import Core.Pizza.Pizza;
+import Utils.ColorCodes;
 
 class ToppingCustomizationHandler extends CustomizationHandler {
     @Override
@@ -13,10 +14,12 @@ class ToppingCustomizationHandler extends CustomizationHandler {
 
                 if (action.equals("add")) {
                     pizza.toppings.add(topping);
-                    System.out.println("Added topping: " + topping);
+                    ColorCodes.printSuccessMessage("\nAdded topping: " + topping, true);
+                    ColorCodes.divider(50);
                 } else if (action.equals("remove")) {
                     pizza.toppings.remove(topping);
-                    System.out.println("Removed topping: " + topping);
+                    ColorCodes.printSuccessMessage("\nRemoved topping: " + topping, true);
+                    ColorCodes.divider(50);
                 }
             }
         }
