@@ -1,15 +1,36 @@
-// Main System Class
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.UUID;
+
+import Chain.CustomizationManager;
+import Command.AddToFavoritesCommand;
+import Command.FeedbackCommand;
+import Command.OrderCommand;
+import Command.PlaceOrderCommand;
+import Command.ProvideFeedbackCommand;
+import Core.Order.Feedback;
+import Core.Order.Order;
+import Core.Pizza.Pizza;
+import Core.Pizza.Builder.PizzaBuilder;
+import Core.User.User;
+import Observer.CustomerNotifier;
+import Strategy.Discount.DiscountStrategy;
+import Strategy.Discount.FlatDiscount;
+import Strategy.Discount.PercentageDiscount;
+import Strategy.Payment.CreditCardPayment;
+import Strategy.Payment.DigitalWalletPayment;
+import Strategy.Payment.LoyaltyPointsPayment;
+import Strategy.Payment.PaymentStrategy;
 
 public class PizzaOrderingSystem {
     private static Scanner scanner = new Scanner(System.in);
     private static User currentUser;
     private static List<Order> orders = new ArrayList<>();
     private static List<DiscountStrategy> discounts = new ArrayList<>();
+    private static CustomizationManager customizationManager = new CustomizationManager();
 
     public static void main(String[] args) {
         // Initialize discounts
@@ -76,57 +97,107 @@ public class PizzaOrderingSystem {
     private static Pizza buildPizza() {
         PizzaBuilder builder = new PizzaBuilder();
 
+        // Step 1: Pizza Name
         System.out.print("Enter pizza name: ");
         String name = scanner.nextLine();
         builder.withName(name);
 
-        System.out.println("\nSelect crust:");
-        System.out.println("1. Thin 2. Thick 3. Stuffed");
-        int crustChoice = scanner.nextInt();
-        scanner.nextLine();
-        String crust = crustChoice == 1 ? "Thin" : crustChoice == 2 ? "Thick" : "Stuffed";
-        builder.withCrust(crust);
-
-        System.out.println("\nSelect sauce:");
-        System.out.println("1. Tomato 2. BBQ 3. Alfredo");
-        int sauceChoice = scanner.nextInt();
-        scanner.nextLine();
-        String sauce = sauceChoice == 1 ? "Tomato" : sauceChoice == 2 ? "BBQ" : "Alfredo";
-        builder.withSauce(sauce);
-
-        while (true) {
-            System.out.println("\nAdd toppings:");
-            System.out.println("1. Pepperoni 2. Mushrooms 3. Onions 4. Done");
-            int toppingChoice = scanner.nextInt();
-            scanner.nextLine();
-
-            if (toppingChoice == 4)
-                break;
-
-            String topping;
-
-            switch (toppingChoice) {
-                case 1:
-                    topping = "Pepperoni";
-                    break;
-                case 2:
-                    topping = "Mushrooms";
-                    break;
-                case 3:
-                    topping = "Onions";
-                    break;
-                default:
-                    topping = "Unknown topping"; // Handle the default case
-                    break;
-            }
-            builder.addTopping(topping);
-        }
-
         Pizza pizza = builder.build();
 
-        System.out.println("Add extra cheese? (y/n)");
-        if (scanner.nextLine().equalsIgnoreCase("y")) {
-            pizza = new ExtraCheeseDecorator(pizza);
+        // Step 2: Select Crust
+        System.out.println("\nStep 1: Select Your Crust");
+        System.out.println("1. Thin Crust");
+        System.out.println("2. Thick Crust");
+        System.out.println("3. Stuffed Crust");
+        System.out.print("Enter your choice (1-3): ");
+        int crustChoice = getValidChoice(1, 3);
+        String crustType;
+        switch (crustChoice) {
+            case 1:
+                crustType = "Thin";
+                break;
+            case 2:
+                crustType = "Thick";
+                break;
+            case 3:
+                crustType = "Stuffed";
+                break;
+            default:
+                crustType = "Thin";
+                break;
+        }
+        pizza = customizationManager.processCustomization(pizza, "crust:" + crustType);
+
+        // Step 3: Select Sauce
+        System.out.println("\nStep 2: Select Your Sauce");
+        System.out.println("1. Tomato Sauce");
+        System.out.println("2. BBQ Sauce");
+        System.out.println("3. Alfredo Sauce");
+        System.out.print("Enter your choice (1-3): ");
+        int sauceChoice = getValidChoice(1, 3);
+        String sauceType;
+        switch (sauceChoice) {
+            case 1:
+                sauceType = "Tomato";
+                break;
+            case 2:
+                sauceType = "BBQ";
+                break;
+            case 3:
+                sauceType = "Alfredo";
+                break;
+            default:
+                sauceType = "Tomato";
+                break;
+        }
+        pizza = customizationManager.processCustomization(pizza, "sauce:" + sauceType);
+
+        // Step 4: Select Toppings
+        System.out.println("\nStep 3: Select Your Toppings");
+        String[] availableToppings = {
+                "Pepperoni", "Mushrooms", "Onions", "Sausage",
+                "Bell Peppers", "Black Olives", "Ham", "Pineapple"
+        };
+
+        boolean selectingToppings = true;
+        Set<String> selectedToppings = new HashSet<>(); // To prevent duplicate toppings
+
+        while (selectingToppings) {
+            System.out.println("\nCurrent Toppings: " +
+                    (selectedToppings.isEmpty() ? "None" : String.join(", ", selectedToppings)));
+            System.out.println("\nAvailable Toppings:");
+            for (int i = 0; i < availableToppings.length; i++) {
+                if (!selectedToppings.contains(availableToppings[i])) {
+                    System.out.println((i + 1) + ". " + availableToppings[i]);
+                }
+            }
+            System.out.println((availableToppings.length + 1) + ". Done adding toppings");
+
+            System.out.print("Enter your choice (1-" + (availableToppings.length + 1) + "): ");
+            int toppingChoice = getValidChoice(1, availableToppings.length + 1);
+
+            if (toppingChoice == availableToppings.length + 1) {
+                selectingToppings = false;
+            } else {
+                String selectedTopping = availableToppings[toppingChoice - 1];
+                if (!selectedToppings.contains(selectedTopping)) {
+                    selectedToppings.add(selectedTopping);
+                    pizza = customizationManager.processCustomization(
+                            pizza,
+                            "topping:add:" + selectedTopping);
+                }
+            }
+        }
+
+        // Step 5: Extra Cheese Option
+        System.out.println("\nStep 4: Would you like extra cheese?");
+        System.out.println("1. Yes");
+        System.out.println("2. No");
+        System.out.print("Enter your choice (1-2): ");
+        int cheeseChoice = getValidChoice(1, 2);
+
+        if (cheeseChoice == 1) {
+            pizza = customizationManager.processCustomization(pizza, "extra cheese");
         }
 
         return pizza;
@@ -136,10 +207,26 @@ public class PizzaOrderingSystem {
         Pizza pizza = buildPizza();
         Order order = new Order(UUID.randomUUID().toString(), currentUser);
         order.addPizza(pizza);
-        orders.add(order); // Store the order
+        orders.add(order);
 
         double cost = pizza.calculateCost();
         System.out.println("\nPizza cost: $" + cost);
+
+        // Add delivery option selection
+        System.out.println("\nWould you like delivery? (Additional $2.00 fee)");
+        System.out.println("1. Yes");
+        System.out.println("2. No");
+        System.out.print("Enter your choice (1-2): ");
+        int deliveryChoice = getValidChoice(1, 2);
+
+        boolean isDelivery = (deliveryChoice == 1);
+        order.setDelivery(isDelivery);
+        if (isDelivery) {
+            cost += order.getDeliveryFee();
+            System.out.println("Delivery fee added: $" + order.getDeliveryFee());
+        }
+
+        order.setTotalAmount(cost);
 
         processPayment(cost);
         currentUser.addLoyaltyPoints(cost);
@@ -148,7 +235,13 @@ public class PizzaOrderingSystem {
         OrderCommand placeOrder = new PlaceOrderCommand(order);
         placeOrder.execute();
 
-        System.out.println("Save to favorites? (y/n)");
+        // Transition the order to Preparing state
+        order.getState().next(order);
+
+        // Print receipt
+        printReceipt(order);
+
+        System.out.println("\nSave to favorites? (y/n)");
         if (scanner.nextLine().equalsIgnoreCase("y")) {
             OrderCommand addToFavorites = new AddToFavoritesCommand(currentUser, pizza);
             addToFavorites.execute();
@@ -199,8 +292,15 @@ public class PizzaOrderingSystem {
         if (!code.isEmpty()) {
             for (DiscountStrategy discount : discounts) {
                 if (discount.isValid(code)) {
+                    double originalCost = cost;
                     double discountedCost = discount.applyDiscount(cost);
+                    double discountAmount = originalCost - discountedCost;
                     System.out.println("Discount applied! New total: $" + discountedCost);
+
+                    // Store discount information in the current order
+                    Order currentOrder = orders.get(orders.size() - 1);
+                    currentOrder.setDiscount(code, discountAmount);
+
                     return discountedCost;
                 }
             }
@@ -276,7 +376,7 @@ public class PizzaOrderingSystem {
         String orderId = scanner.nextLine();
         Order order = findOrder(orderId);
         if (order != null) {
-            System.out.println("Order Status: " + order.getState());
+            System.out.println("Order Status: " + order.getState().getStatus());
         } else {
             System.out.println("Order not found!");
         }
@@ -313,16 +413,84 @@ public class PizzaOrderingSystem {
         for (Order order : orders) {
             System.out.println("\nOrder ID: " + order.getOrderId());
             System.out.println("Status: " + order.getState().getStatus());
-            System.out.println("Pizzas:");
+            System.out.println("Delivery: " + (order.isDelivery() ? "Yes" : "No"));
+
+            System.out.println("\nOrdered Items:");
             for (Pizza pizza : order.getPizzas()) {
-                System.out.println("- " + pizza.getName());
+                System.out.println("\nPizza: " + pizza.getName());
+                System.out.println("- Crust: " + pizza.getCrust());
+                System.out.println("- Sauce: " + pizza.getSauce());
+                System.out.println("- Toppings: " + String.join(", ", pizza.getToppings()));
+                if (pizza.hasExtraCheese()) {
+                    System.out.println("- Extra Cheese: Yes");
+                }
             }
+
+            // Display discount information
+            if (order.getDiscountCode() != null) {
+                System.out.println("\nDiscount Applied:");
+                System.out.println("- Code: " + order.getDiscountCode());
+                System.out.printf("- Amount: $%.2f%n", order.getDiscountAmount());
+            }
+
+            System.out.printf("Total Amount: $%.2f%n", order.getTotalAmount());
+
             if (order.hasFeedback()) {
                 Feedback feedback = order.getFeedback();
+                System.out.println("\nFeedback:");
                 System.out.println("Rating: " + feedback.getRating() + "/5");
                 System.out.println("Comment: " + feedback.getComment());
             }
             System.out.println("------------------------");
         }
+    }
+
+    private static int getValidChoice(int min, int max) {
+        while (true) {
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+                if (choice >= min && choice <= max) {
+                    return choice;
+                }
+                System.out.print("Please enter a number between " + min + " and " + max + ": ");
+            } catch (Exception e) {
+                scanner.nextLine(); // Consume invalid input
+                System.out.print("Please enter a valid number between " + min + " and " + max + ": ");
+            }
+        }
+    }
+
+    private static void printReceipt(Order order) {
+        System.out.println("\n========= ORDER RECEIPT =========");
+        System.out.println("Order ID: " + order.getOrderId());
+        System.out.println("Customer: " + currentUser.getName());
+        if (order.isDelivery()) {
+            System.out.println("Delivery: Yes (+$" + order.getDeliveryFee() + ")");
+        } else {
+            System.out.println("Delivery: No");
+        }
+
+        System.out.println("\nOrdered Items:");
+
+        for (Pizza pizza : order.getPizzas()) {
+            System.out.println("\nPizza: " + pizza.getName());
+            System.out.println("- Crust: " + pizza.getCrust());
+            System.out.println("- Sauce: " + pizza.getSauce());
+            System.out.println("- Toppings: " + String.join(", ", pizza.getToppings()));
+            if (pizza.hasExtraCheese()) {
+                System.out.println("- Extra Cheese: Yes (+$2.00)");
+            }
+            System.out.printf("Item Cost: $%.2f%n", pizza.calculateCost());
+        }
+
+        if (order.getDiscountCode() != null) {
+            System.out.println("\nDiscount Applied:");
+            System.out.println("Code: " + order.getDiscountCode());
+            System.out.printf("Discount Amount: -$%.2f%n", order.getDiscountAmount());
+        }
+
+        System.out.printf("\nTotal Amount: $%.2f%n", order.getTotalAmount());
+        System.out.println("===============================");
     }
 }
