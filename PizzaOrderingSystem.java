@@ -24,6 +24,7 @@ import Strategy.Payment.CreditCardPayment;
 import Strategy.Payment.DigitalWalletPayment;
 import Strategy.Payment.LoyaltyPointsPayment;
 import Strategy.Payment.PaymentStrategy;
+import Utils.ColorCodes;
 
 public class PizzaOrderingSystem {
     private static Scanner scanner = new Scanner(System.in);
@@ -35,26 +36,25 @@ public class PizzaOrderingSystem {
     public static void main(String[] args) {
         // Initialize discounts
         discounts.add(new PercentageDiscount("SAVE20", 20));
-        discounts.add(new FlatDiscount("FLAT10", 10));
+        discounts.add(new FlatDiscount("FLAT500", 500));
 
         login();
         while (true) {
             displayMainMenu();
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            int choice = getValidChoice(1, 8);
 
             switch (choice) {
                 case 1:
                     orderPizza();
                     break;
                 case 2:
-                    viewFavorites();
+                    viewAllOrders();
                     break;
                 case 3:
                     trackOrder();
                     break;
                 case 4:
-                    viewLoyaltyPoints();
+                    viewFavorites();
                     break;
                 case 5:
                     provideFeedback();
@@ -63,34 +63,35 @@ public class PizzaOrderingSystem {
                     viewFeedbacks();
                     break;
                 case 7:
-                    viewAllOrders();
+                    viewLoyaltyPoints();
                     break;
                 case 8:
-                    System.out.println("Thank you for using our service!");
+                    ColorCodes.printBannerTitle("Goodbye!", 50);
                     return;
                 default:
-                    System.out.println("Invalid choice. Please try again.");
+                    ColorCodes.printErrorMessage("Invalid choice. Please try again.", false);
             }
         }
     }
 
     private static void login() {
+        ColorCodes.printBannerTitle("Initialization", 50);
         System.out.print("Enter your name: ");
         String name = scanner.nextLine();
         currentUser = new User(UUID.randomUUID().toString(), name);
-        System.out.println("Welcome, " + name + "!");
+        System.out.println("Welcome, " + ColorCodes.GREEN + name + ColorCodes.RESET + "!");
     }
 
     private static void displayMainMenu() {
-        System.out.println("\n=== Pizza Ordering System ===");
+        ColorCodes.printBannerTitle("Pizza Odering System", 50);
         System.out.println("1. Order Pizza");
-        System.out.println("2. View Favorites");
+        System.out.println("2. View All Orders");
         System.out.println("3. Track Order");
-        System.out.println("4. View Loyalty Points");
+        System.out.println("4. View Favorites");
         System.out.println("5. Provide Feedback");
         System.out.println("6. View All Feedbacks");
-        System.out.println("7. View All Orders");
-        System.out.println("8. Exit");
+        System.out.println("7. View Loyalty Points");
+        System.out.println("8. Exit\n");
         System.out.print("Enter your choice: ");
     }
 
@@ -98,15 +99,17 @@ public class PizzaOrderingSystem {
         PizzaBuilder builder = new PizzaBuilder();
 
         // Step 1: Pizza Name
-        System.out.print("Enter pizza name: ");
+        ColorCodes.printBannerTitle("Order Your Pizza - Base Cost LKR 1000.00", 50);
+        ColorCodes.printStep(1, "Enter pizza name:", false);
         String name = scanner.nextLine();
         builder.withName(name);
 
         Pizza pizza = builder.build();
 
         // Step 2: Select Crust
-        System.out.println("\nStep 1: Select Your Crust");
-        System.out.println("1. Thin Crust");
+        ColorCodes.divider(50);
+        ColorCodes.printStep(2, "Select Your Crust", true);
+        System.out.println("\n1. Thin Crust");
         System.out.println("2. Thick Crust");
         System.out.println("3. Stuffed Crust");
         System.out.print("Enter your choice (1-3): ");
@@ -129,8 +132,9 @@ public class PizzaOrderingSystem {
         pizza = customizationManager.processCustomization(pizza, "crust:" + crustType);
 
         // Step 3: Select Sauce
-        System.out.println("\nStep 2: Select Your Sauce");
-        System.out.println("1. Tomato Sauce");
+        ColorCodes.divider(50);
+        ColorCodes.printStep(3, "Select Your Sauce", true);
+        System.out.println("\n1. Tomato Sauce");
         System.out.println("2. BBQ Sauce");
         System.out.println("3. Alfredo Sauce");
         System.out.print("Enter your choice (1-3): ");
@@ -153,7 +157,8 @@ public class PizzaOrderingSystem {
         pizza = customizationManager.processCustomization(pizza, "sauce:" + sauceType);
 
         // Step 4: Select Toppings
-        System.out.println("\nStep 3: Select Your Toppings");
+        ColorCodes.divider(50);
+        ColorCodes.printStep(4, "Select Your Toppings (Per Topping LKR 150.00)", true);
         String[] availableToppings = {
                 "Pepperoni", "Mushrooms", "Onions", "Sausage",
                 "Bell Peppers", "Black Olives", "Ham", "Pineapple"
@@ -163,7 +168,7 @@ public class PizzaOrderingSystem {
         Set<String> selectedToppings = new HashSet<>(); // To prevent duplicate toppings
 
         while (selectingToppings) {
-            System.out.println("\nCurrent Toppings: " +
+            System.out.println(ColorCodes.YELLOW + "\nCurrent Toppings: " + ColorCodes.RESET +
                     (selectedToppings.isEmpty() ? "None" : String.join(", ", selectedToppings)));
             System.out.println("\nAvailable Toppings:");
             for (int i = 0; i < availableToppings.length; i++) {
@@ -190,7 +195,8 @@ public class PizzaOrderingSystem {
         }
 
         // Step 5: Extra Cheese Option
-        System.out.println("\nStep 4: Would you like extra cheese?");
+        ColorCodes.divider(50);
+        ColorCodes.printStep(5, "Would you like extra cheese? (Additional LKR 250.00 fee)", true);
         System.out.println("1. Yes");
         System.out.println("2. No");
         System.out.print("Enter your choice (1-2): ");
@@ -210,10 +216,11 @@ public class PizzaOrderingSystem {
         orders.add(order);
 
         double cost = pizza.calculateCost();
-        System.out.println("\nPizza cost: $" + cost);
+        ColorCodes.printWarningMessage("Pizza cost: LKR " + cost, true);
 
-        // Add delivery option selection
-        System.out.println("\nWould you like delivery? (Additional $2.00 fee)");
+        // Step 6 - Add delivery option selection
+        ColorCodes.divider(50);
+        ColorCodes.printStep(6, "Would you like delivery? (Additional LKR 300.00 fee)", true);
         System.out.println("1. Yes");
         System.out.println("2. No");
         System.out.print("Enter your choice (1-2): ");
@@ -223,11 +230,13 @@ public class PizzaOrderingSystem {
         order.setDelivery(isDelivery);
         if (isDelivery) {
             cost += order.getDeliveryFee();
-            System.out.println("Delivery fee added: $" + order.getDeliveryFee());
+            ColorCodes.printSuccessMessage("\nDelivery fee added: LKR " + order.getDeliveryFee(), true);
+            ColorCodes.printWarningMessage("Total Amount: LKR " + cost, true);
         }
 
         order.setTotalAmount(cost);
 
+        // Step 7 and Step 8 ( Apply discount and proccess payment )
         processPayment(cost);
         currentUser.addLoyaltyPoints(cost);
 
@@ -238,7 +247,7 @@ public class PizzaOrderingSystem {
         // Transition the order to Preparing state
         order.getState().next(order);
 
-        // Print receipt
+        // Finale - Print receipt
         printReceipt(order);
 
         System.out.println("\nSave to favorites? (y/n)");
@@ -250,16 +259,18 @@ public class PizzaOrderingSystem {
     }
 
     private static void processPayment(double cost) {
-        // Apply discount if available
+        // Step 7 - Apply discount if available
         cost = applyDiscount(cost);
 
-        System.out.println("\nSelect payment method:");
-        System.out.println("1. Credit Card");
+        // Step 8 - Payment method selection
+        ColorCodes.divider(50);
+        ColorCodes.printStep(8, "Select payment method:", true);
+        System.out.println("\n1. Credit Card");
         System.out.println("2. Digital Wallet");
         System.out.println("3. Loyalty Points");
 
-        int paymentChoice = scanner.nextInt();
-        scanner.nextLine();
+        System.out.print("Enter your choice (1-3): ");
+        int paymentChoice = getValidChoice(1, 3);
 
         PaymentStrategy payment;
         try {
@@ -281,12 +292,14 @@ public class PizzaOrderingSystem {
             payment.pay(cost);
         } catch (IllegalStateException e) {
             System.out.println(e.getMessage());
-            processPayment(cost); // Retry payment
+            processPayment(cost);
         }
     }
 
+    // Step 7 - Apply discount if available
     private static double applyDiscount(double cost) {
-        System.out.print("Enter discount code (or press enter to skip): ");
+        ColorCodes.divider(50);
+        ColorCodes.printStep(7, "Enter discount code (or press enter to skip): ", false);
         String code = scanner.nextLine().trim();
 
         if (!code.isEmpty()) {
@@ -295,7 +308,8 @@ public class PizzaOrderingSystem {
                     double originalCost = cost;
                     double discountedCost = discount.applyDiscount(cost);
                     double discountAmount = originalCost - discountedCost;
-                    System.out.println("Discount applied! New total: $" + discountedCost);
+                    ColorCodes.printSuccessMessage("\nDiscount Applied: LKR " + discountAmount, true);
+                    ColorCodes.printWarningMessage("New Total: LKR " + discountedCost, true);
 
                     // Store discount information in the current order
                     Order currentOrder = orders.get(orders.size() - 1);
@@ -304,7 +318,7 @@ public class PizzaOrderingSystem {
                     return discountedCost;
                 }
             }
-            System.out.println("Invalid discount code!");
+            ColorCodes.printErrorMessage("\nInvalid discount code!", true);
         }
         return cost;
     }
@@ -328,7 +342,7 @@ public class PizzaOrderingSystem {
         if (choice > 0 && choice <= favorites.size()) {
             Pizza selectedPizza = favorites.get(choice - 1);
             double cost = selectedPizza.calculateCost();
-            System.out.println("\nPizza cost: $" + cost);
+            System.out.println("\nPizza cost: LKR " + cost);
             processPayment(cost);
             currentUser.addLoyaltyPoints(cost);
 
@@ -430,10 +444,10 @@ public class PizzaOrderingSystem {
             if (order.getDiscountCode() != null) {
                 System.out.println("\nDiscount Applied:");
                 System.out.println("- Code: " + order.getDiscountCode());
-                System.out.printf("- Amount: $%.2f%n", order.getDiscountAmount());
+                System.out.printf("- Amount: LKR %.2f%n", order.getDiscountAmount());
             }
 
-            System.out.printf("Total Amount: $%.2f%n", order.getTotalAmount());
+            System.out.printf("Total Amount: LKR %.2f%n", order.getTotalAmount());
 
             if (order.hasFeedback()) {
                 Feedback feedback = order.getFeedback();
@@ -449,48 +463,47 @@ public class PizzaOrderingSystem {
         while (true) {
             try {
                 int choice = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
+                scanner.nextLine();
                 if (choice >= min && choice <= max) {
                     return choice;
                 }
-                System.out.print("Please enter a number between " + min + " and " + max + ": ");
+                ColorCodes.printErrorMessage("Please enter a number between " + min + " and " + max + ": ", false);
             } catch (Exception e) {
-                scanner.nextLine(); // Consume invalid input
-                System.out.print("Please enter a valid number between " + min + " and " + max + ": ");
+                scanner.nextLine();
+                ColorCodes.printErrorMessage("Please enter a valid number between " + min + " and " + max + ": ", false);
             }
         }
     }
 
     private static void printReceipt(Order order) {
-        System.out.println("\n========= ORDER RECEIPT =========");
+        ColorCodes.printReceiptTitle("Order Reciept", 50);
         System.out.println("Order ID: " + order.getOrderId());
         System.out.println("Customer: " + currentUser.getName());
-        if (order.isDelivery()) {
-            System.out.println("Delivery: Yes (+$" + order.getDeliveryFee() + ")");
-        } else {
-            System.out.println("Delivery: No");
-        }
-
-        System.out.println("\nOrdered Items:");
 
         for (Pizza pizza : order.getPizzas()) {
-            System.out.println("\nPizza: " + pizza.getName());
+            System.out.println("\nPizza Name ( Base Cost LKR 1000): " + pizza.getName());
             System.out.println("- Crust: " + pizza.getCrust());
             System.out.println("- Sauce: " + pizza.getSauce());
-            System.out.println("- Toppings: " + String.join(", ", pizza.getToppings()));
+            System.out.println("- Toppings ( + LKR 150 per topping ): " + String.join(", ", pizza.getToppings()));
             if (pizza.hasExtraCheese()) {
-                System.out.println("- Extra Cheese: Yes (+$2.00)");
+                System.out.println("- Extra Cheese: Yes ( + LKR 250.00 )");
             }
-            System.out.printf("Item Cost: $%.2f%n", pizza.calculateCost());
+            System.out.printf("Item Cost: LKR %.2f%n", pizza.calculateCost());
+        }
+
+        if (order.isDelivery()) {
+            System.out.println("Delivery: Yes ( + LKR " + order.getDeliveryFee() + " )");
+        } else {
+            System.out.println("Delivery: No");
         }
 
         if (order.getDiscountCode() != null) {
             System.out.println("\nDiscount Applied:");
             System.out.println("Code: " + order.getDiscountCode());
-            System.out.printf("Discount Amount: -$%.2f%n", order.getDiscountAmount());
+            System.out.printf("Discount Amount: -LKR %.2f%n", order.getDiscountAmount());
         }
 
-        System.out.printf("\nTotal Amount: $%.2f%n", order.getTotalAmount());
-        System.out.println("===============================");
+        System.out.printf("\nTotal Amount: LKR %.2f%n", order.getTotalAmount());
+        ColorCodes.printReceiptTitle("Thank You!", 50);
     }
 }
