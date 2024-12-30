@@ -1,5 +1,7 @@
 package Strategy.Payment;
 
+import Utils.ColorCodes;
+
 public class CreditCardPayment implements PaymentStrategy {
     private String cardNumber;
 
@@ -9,6 +11,7 @@ public class CreditCardPayment implements PaymentStrategy {
 
     @Override
     public void pay(double amount) {
-        System.out.println("Paid $" + amount + " with credit card " + cardNumber);
+        ColorCodes.printSuccessMessage("\nPaid LKR " + amount, true);
+        ColorCodes.printSuccessMessage("Credit Card Number: " + cardNumber, true);
     }
 }
