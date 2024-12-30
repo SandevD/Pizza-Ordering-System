@@ -1,5 +1,7 @@
 package Strategy.Payment;
 
+import Utils.ColorCodes;
+
 public class DigitalWalletPayment implements PaymentStrategy {
     private String walletId;
 
@@ -9,6 +11,7 @@ public class DigitalWalletPayment implements PaymentStrategy {
 
     @Override
     public void pay(double amount) {
-        System.out.println("Paid $" + amount + " with digital wallet " + walletId);
+        ColorCodes.printSuccessMessage("\nPaid LKR " + amount, true);
+        ColorCodes.printSuccessMessage("Digital Wallet ID: " + walletId, true);
     }
 }
