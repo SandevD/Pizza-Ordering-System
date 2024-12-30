@@ -2,6 +2,7 @@ package Chain;
 
 import Core.Pizza.CustomPizza;
 import Core.Pizza.Pizza;
+import Utils.ColorCodes;
 
 public class SauceCustomizationHandler extends CustomizationHandler {
     @Override
@@ -9,7 +10,7 @@ public class SauceCustomizationHandler extends CustomizationHandler {
         if (customization.toLowerCase().contains("sauce")) {
             String sauceType = customization.split(":")[1].trim();
             ((CustomPizza) pizza).setSauce(sauceType);
-            System.out.println("Sauce customized to: " + sauceType);
+            ColorCodes.printSuccessMessage("\nSauce customized to: " + sauceType, true);
         }
         return passToNextHandler(pizza, customization);
     }
